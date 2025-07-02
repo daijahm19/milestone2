@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Book Search</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    nav {
+      margin-bottom: 20px;
+    }
+    nav a {
+      color: #E63946;
+      text-decoration: none;
+      margin-right: 15px;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    input[type="text"] {
+      width: 70%;
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      margin-right: 8px;
+    }
+    button {
+      background-color: #E63946;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #b52a38;
+    }
+    #results {
+      margin-top: 20px;
+    }
+    .book {
+      border-bottom: 1px solid #444;
+      padding: 10px 0;
+      display: flex;
+      align-items: center;
+    }
+    .book img {
+      height: 90px;
+      margin-right: 15px;
+      border-radius: 4px;
+    }
+    .book a {
+      color: #E63946;
+      font-size: 1.1em;
+      text-decoration: none;
+    }
+    .book a:hover {
+      text-decoration: underline;
+    }
+    #pagination {
+      margin-top: 20px;
+      color: white;
+    }
+    select {
+      background-color: #222;
+      color: white;
+      border: none;
+      padding: 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="bookshelf.html">My Bookshelf</a>
+  </nav>
+  <h1>Book Search</h1>
+  <input type="text" id="searchTerm" placeholder="Enter search terms" />
+  <button id="searchBtn">Search</button>
+  <div id="results"></div>
+  <div id="pagination" style="display:none;">
+    <label for="pageSelect">Page: </label>
+    <select id="pageSelect"></select>
+  </div>
+  <script>
+    const resultsPerPage = 20;
+    let books = [];
+    let totalPages = 0;
+    function showPage(page) {
+      $('#results').empty();
+      let start = (page - 1) * resultsPerPage;
+      let end = start + resultsPerPage;
+      let pageBooks = books.slice(start, end);
+      if (pageBooks.length === 0) {
+        $('#results').html('<p>No books found.</p>');
+        return;
+      }
+      pageBooks.forEach(book => {
+        let title = book.volumeInfo.title || "No Title";
+        let thumb = book.volumeInfo.imageLinks ? book.volumeInfo.imageLinks.smallThumbnail : '';
+        let id = book.id;
+        let bookHtml = `<div class="book">
+          ${thumb ? `<img src="${thumb}" alt="Book cover" />` : ''}
+          <a href="book.html?id=${id}">${title}</a>
+        </div>`;
+        $('#results').append(bookHtml);
+      });
+    }
+    function setupPagination() {
+      totalPages = Math.ceil(books.length / resultsPerPage);
+      $('#pageSelect').empty();
+      for (let i = 1; i <= totalPages; i++) {
+        $('#pageSelect').append(`<option value="${i}">${i}</option>`);
+      }
+      $('#pagination').show();
+      $('#pageSelect').off('change').on('change', function() {
+        showPage(parseInt($(this).val()));
+      });
+    }
+    $('#searchBtn').click(function() {
+      let query = $('#searchTerm').val().trim();
+      if (!query) {
+        alert("Please enter a search term.");
+        return;
+      }
+      let apiURL = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=40`;
+      $.getJSON(apiURL, function(data) {
+        if (!data.items) {
+          $('#results').html('<p>No results found.</p>');
+          $('#pagination').hide();
+          books = [];
+          return;
+        }
+        books = data.items.slice(0, 60);
+        setupPagination();
+        showPage(1);
+      }).fail(function() {
+        alert("Error fetching data from Google Books API.");
+      });
+    });
+  </script>
+</body>
+</html>

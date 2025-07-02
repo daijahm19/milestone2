@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Book Details</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    nav {
+      margin-bottom: 20px;
+    }
+    nav a {
+      color: #E63946;
+      text-decoration: none;
+      margin-right: 15px;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    h1 {
+      color: #E63946;
+    }
+    .book-details img {
+      max-width: 150px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+    .book-details {
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="bookshelf.html">My Bookshelf</a>
+  </nav>
+  <h1>Book Details</h1>
+  <div class="book-details" id="bookDetails"></div>
+  <script>
+    function getBookIdFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+    $(document).ready(function () {
+      const bookId = getBookIdFromURL();
+      if (!bookId) {
+        $('#bookDetails').html('<p>Book ID not found.</p>');
+        return;
+      }
+      const apiURL = `https://www.googleapis.com/books/v1/volumes/${bookId}`;
+      $.getJSON(apiURL, function (data) {
+        let info = data.volumeInfo;
+        let title = info.title || "No title";
+        let authors = info.authors ? info.authors.join(", ") : "Unknown";
+        let publisher = info.publisher || "Unknown publisher";
+        let description = info.description || "No description available.";
+        let image = info.imageLinks ? info.imageLinks.thumbnail : '';
+        let price = data.saleInfo && data.saleInfo.listPrice ? `$${data.saleInfo.listPrice.amount}` : "N/A";
+        let html = `
+          ${image ? `<img src="${image}" alt="Book cover" />` : ''}
+          <h2>${title}</h2>
+          <p><strong>Author(s):</strong> ${authors}</p>
+          <p><strong>Publisher:</strong> ${publisher}</p>
+          <p><strong>Price:</strong> ${price}</p>
+          <p><strong>Description:</strong></p>
+          <p>${description}</p>
+        `;
+        $('#bookDetails').html(html);
+      }).fail(function () {
+        $('#bookDetails').html('<p>Could not fetch book details.</p>');
+      });
+    });
+  </script>
+</body>
+</html>

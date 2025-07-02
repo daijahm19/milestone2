@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Bookshelf</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    nav {
+      margin-bottom: 20px;
+    }
+    nav a {
+      color: #E63946;
+      text-decoration: none;
+      margin-right: 15px;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    h1 {
+      color: #E63946;
+    }
+    .book-item {
+      border-bottom: 1px solid #444;
+      padding: 10px 0;
+    }
+    .book-item img {
+      height: 100px;
+      margin-right: 15px;
+    }
+    .book-info {
+      display: flex;
+      align-items: center;
+    }
+    .book-info a {
+      color: #E63946;
+      text-decoration: none;
+      font-size: 1.1em;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="bookshelf.html">My Bookshelf</a>
+  </nav>
+  <h1>My Bookshelf</h1>
+  <div id="bookshelf"></div>
+  <script>
+    const userId = '101540967299731915285';
+    const shelfId = '1002';
+    const apiURL = `https://www.googleapis.com/books/v1/users/${userId}/bookshelves/${shelfId}/volumes`;
+
+    $.getJSON(apiURL, function(data) {
+      if (!data.items || data.items.length === 0) {
+        $('#bookshelf').html('<p>No books found in your bookshelf.</p>');
+        return;
+      }
+      let html = '';
+      data.items.forEach(function(book) {
+        let info = book.volumeInfo;
+        let title = info.title || 'No title';
+        let image = info.imageLinks ? info.imageLinks.thumbnail : '';
+        let bookId = book.id;
+        html += `
+          <div class="book-item">
+            <div class="book-info">
+              ${image ? `<img src="${image}" alt="Book Cover">` : ''}
+              <a href="book.html?id=${bookId}">${title}</a>
+            </div>
+          </div>
+        `;
+      });
+      $('#bookshelf').html(html);
+    }).fail(function () {
+      $('#bookshelf').html('<p>Could not load your bookshelf.</p>');
+    });
+  </script>
+</body>
+</html>
